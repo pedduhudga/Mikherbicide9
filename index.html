@@ -15,15 +15,16 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <!-- QR Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <!-- Statistical Analysis Library -->
     <script src="https://cdn.jsdelivr.net/npm/jstat@1.9.6/dist/jstat.min.js"></script>
+    <!-- DOC Export Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
     <style>
         :root {
@@ -1101,35 +1102,6 @@ IMPORTANT:
                                 <p class="text-xs mt-2 text-gray-500">This feature requires internet access and works best when the app is hosted on a web server.</p>
                             </div>`;
                         });
-                },
-
-                loadDirectly: function (url, container) {
-                    console.log('Attempting direct load fallback...');
-                    this.imgObject = new Image();
-                    this.imgObject.crossOrigin = "Anonymous";
-                    this.imgObject.onload = () => {
-                        const maxWidth = container.clientWidth || 600;
-                        const scale = Math.min(1, maxWidth / this.imgObject.width);
-                        this.canvas.width = this.imgObject.width * scale;
-                        this.canvas.height = this.imgObject.height * scale;
-                        this.cellWidth = this.canvas.width / this.gridSize;
-                        this.cellHeight = this.canvas.height / this.gridSize;
-                        container.innerHTML = '';
-                        container.appendChild(this.canvas);
-                        this.drawGrid();
-                        this.canvas.addEventListener('click', (e) => this.handleClick(e));
-                    };
-                    this.imgObject.onerror = () => this.handleLoadError(container, url);
-                    this.imgObject.src = url;
-                },
-
-                handleLoadError: function (container, url) {
-                    container.innerHTML = `
-                        <div class="text-center p-4 bg-red-50 rounded-lg">
-                            <p class="text-red-600 font-semibold mb-2">⚠️ Cannot load image for grid analysis</p>
-                            <p class="text-sm text-red-500 mb-3">Google Drive security is blocking access.</p>
-                            <a href="${url}" target="_blank" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Open Image in New Tab</a>
-                        </div>`;
                 },
 
                 drawGrid: function () {
@@ -2919,7 +2891,7 @@ IMPORTANT:
                                     <label for="include-timeline" class="text-sm font-medium text-teal-900">Include Weed Status Timeline</label>
                                 </div>
                             </div>
-                            <div id="cover-report-section" class="hidden"><h4 class="text-md font-semibold text-slate-700">% Cover by Species</h4><div id="cover-chart-preview" class="relative h-[300px] w-full my-2 bg-slate-100 rounded-lg p-2"><canvas id="preview-cover-canvas"></canvas></div><div class="flex justify-between items-end mt-2"><label for="cover-summary-textarea" class="block text-sm font-medium text-gray-700">AI Generated Summary (Editable)</label><button id="regenerate-cover-summary" class="text-xs text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1"><i data-lucide="refresh-cw" class="h-3 w-3"></i> Regenerate</button></div><textarea id="cover-summary-textarea" class="w-full p-2 border rounded-md form-input mt-1" rows="4" placeholder="Generating summary..."></textarea></div><div id="phyto-report-section" class="hidden"><h4 class="text-md font-semibold text-slate-700">% Phytotoxicity</h4><div id="phyto-chart-preview" class="relative h-[300px] w-full my-2 bg-slate-100 rounded-lg p-2"><canvas id="preview-phyto-canvas"></canvas></div><div class="flex justify-between items-end mt-2"><label for="phyto-summary-textarea" class="block text-sm font-medium text-gray-700">AI Generated Summary (Editable)</label><button id="regenerate-phyto-summary" class="text-xs text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1"><i data-lucide="refresh-cw" class="h-3 w-3"></i> Regenerate</button></div><textarea id="phyto-summary-textarea" class="w-full p-2 border rounded-md form-input mt-1" rows="4" placeholder="Generating summary..."></textarea></div></div><div class="mt-6 flex justify-end gap-3 border-t pt-4"><button type="button" data-action="close-modal" class="bg-slate-200 text-slate-800 px-4 py-2 rounded-lg">Cancel</button><button id="generate-pdf-from-preview" class="btn-primary text-white px-4 py-2 rounded-lg flex items-center gap-2"><i data-lucide="download" class="h-4 w-4"></i> Generate & Download PDF</button></div></div></div>`,
+                            <div id="cover-report-section" class="hidden"><h4 class="text-md font-semibold text-slate-700">% Cover by Species</h4><div id="cover-chart-preview" class="relative h-[300px] w-full my-2 bg-slate-100 rounded-lg p-2"><canvas id="preview-cover-canvas"></canvas></div><div class="flex justify-between items-end mt-2"><label for="cover-summary-textarea" class="block text-sm font-medium text-gray-700">AI Generated Summary (Editable)</label><button id="regenerate-cover-summary" class="text-xs text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1"><i data-lucide="refresh-cw" class="h-3 w-3"></i> Regenerate</button></div><textarea id="cover-summary-textarea" class="w-full p-2 border rounded-md form-input mt-1" rows="4" placeholder="Generating summary..."></textarea></div><div id="phyto-report-section" class="hidden"><h4 class="text-md font-semibold text-slate-700">% Phytotoxicity</h4><div id="phyto-chart-preview" class="relative h-[300px] w-full my-2 bg-slate-100 rounded-lg p-2"><canvas id="preview-phyto-canvas"></canvas></div><div class="flex justify-between items-end mt-2"><label for="phyto-summary-textarea" class="block text-sm font-medium text-gray-700">AI Generated Summary (Editable)</label><button id="regenerate-phyto-summary" class="text-xs text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1"><i data-lucide="refresh-cw" class="h-3 w-3"></i> Regenerate</button></div><textarea id="phyto-summary-textarea" class="w-full p-2 border rounded-md form-input mt-1" rows="4" placeholder="Generating summary..."></textarea></div></div><div class="mt-6 flex justify-end gap-3 border-t pt-4"><button type="button" data-action="close-modal" class="bg-slate-200 text-slate-800 px-4 py-2 rounded-lg">Cancel</button><button id="generate-doc-from-preview" class="btn-primary text-white px-4 py-2 rounded-lg flex items-center gap-2" style="background-color: #2b5797;"><i data-lucide="file-text" class="h-4 w-4"></i> Export to Word</button><button id="generate-pdf-from-preview" class="btn-primary text-white px-4 py-2 rounded-lg flex items-center gap-2"><i data-lucide="download" class="h-4 w-4"></i> Generate & Download PDF</button></div></div></div>`,
                         qrLabel: () => {
                             const { trial, qrContent, mode } = data;
                             return `<div id="qr-label-modal" class="modal"><div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-sm mx-auto mt-20 text-center"><h3 class="text-xl font-bold mb-1 text-slate-800">${sanitizeHTML(trial.FormulationName)}</h3><p class="text-xs text-slate-400 mb-4">${mode.toUpperCase()} MODE</p><div id="qr-code-canvas" class="flex justify-center mb-4 border p-2 bg-white rounded-lg shadow-inner"></div><div class="text-left bg-slate-50 p-3 rounded text-[10px] font-mono mb-4 break-all overflow-auto max-h-24 border border-slate-200">${sanitizeHTML(qrContent).replace(/\n/g, '<br>')}</div><p class="text-xs text-slate-500 mb-6 px-4">Scan this code with a phone camera to ${mode === 'online' ? 'open the live report' : 'view the plot data'}.</p><div class="flex gap-2 justify-center"><button onclick="window.print()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 font-medium"><i data-lucide="printer" class="h-3 w-3"></i> Print Label</button><button data-action="close-modal" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium">Close</button></div></div></div>`;
@@ -3046,6 +3018,8 @@ IMPORTANT:
                                     ${hasEfficacyData ? `<button data-action="export-pdf-with-report" data-id="${trial.ID}" class="bg-teal-100 text-teal-800 px-4 py-2 rounded-lg text-sm font-semibold transition hover:bg-teal-200">Full Report (w/ Ing.)</button>` : ''}
                                      <button data-action="export-scientific-trial-report-no-ing" data-id="${trial.ID}" class="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-lg text-sm font-semibold transition hover:bg-indigo-200">Scientific Report (No Ing.)</button>
                                      <button data-action="export-scientific-trial-report-with-ing" data-id="${trial.ID}" class="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-lg text-sm font-semibold transition hover:bg-indigo-200">Scientific Report (w/ Ing.)</button>
+                                     <button data-action="export-scientific-trial-report-doc-no-ing" data-id="${trial.ID}" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm font-semibold transition hover:bg-blue-200">DOC (No Ing.)</button>
+                                     <button data-action="export-scientific-trial-report-doc-with-ing" data-id="${trial.ID}" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm font-semibold transition hover:bg-blue-200">DOC (w/ Ing.)</button>
                                     <button data-action="export-ppt" data-id="${trial.ID}" class="bg-orange-100 text-orange-800 px-4 py-2 rounded-lg text-sm font-semibold transition hover:bg-orange-200">Export PPT</button>
                                     <button data-action="close-modal" class="btn-primary text-white px-4 py-2 rounded-lg text-sm">Go Back</button>
                             </div></div></div>`;
@@ -3591,6 +3565,9 @@ IMPORTANT:
                                 </button>
                                 <button data-action="generate-regulatory-report" class="w-full text-left px-4 py-2 rounded-lg hover:bg-purple-50 text-purple-700 font-semibold flex items-center gap-2">
                                     <i data-lucide="file-text" class="h-4 w-4"></i> Regulatory Report (PDF)
+                                </button>
+                                <button onclick="exportRegulatoryReportAsDOC('${projectId}')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 text-blue-700 font-semibold flex items-center gap-2">
+                                    <i data-lucide="file-text" class="h-4 w-4"></i> Regulatory Report (DOCX)
                                 </button>
                                 <hr class="my-2 border-slate-200">
                                 <button onclick="exportToR('${projectId}'); return false;" class="w-full text-left px-4 py-2 rounded-lg hover:bg-blue-50 text-blue-700 font-semibold flex items-center gap-2">
@@ -8894,6 +8871,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
                 let y = 15;
 
                 // Header
@@ -8946,7 +8924,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         return;
                     }
 
-                    if (y > 270) { doc.addPage(); y = 20; }
+                    if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
 
                     if (cleanLine.startsWith('**') && cleanLine.endsWith('**')) {
                         doc.setFont(undefined, 'bold');
@@ -8965,6 +8943,11 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                     } else {
                         const maxWidth = pageWidth - 28;
                         const lines = doc.splitTextToSize(cleanLine, maxWidth);
+
+                        // Check if we need a new page before adding text
+                        const textHeight = lines.length * 5 + 2;
+                        if (y + textHeight > 220) { doc.addPage(); y = 20; }
+
                         doc.text(lines, 14, y, { maxWidth: maxWidth, align: 'justify' });
                         y += (lines.length * 5) + 2;
                     }
@@ -8973,7 +8956,12 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
 
                 // NOW ADD ALL THE STANDARD FULL REPORT CONTENT
                 // This is the same as generateComprehensivePdf
-                if (y > 240) { doc.addPage(); y = 20; }
+
+                // Ensure header has room for content (60mm = header + ~10 lines)
+                if (y + 60 > pageHeight - 20) {
+                    doc.addPage();
+                    y = 20;
+                }
 
                 doc.setFontSize(16);
                 doc.setFont(undefined, 'bold');
@@ -8988,6 +8976,11 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                     doc.text(`Weed Species:`, 14, y);
                     doc.setFont(undefined, 'normal');
                     const weedLines = doc.splitTextToSize(trial.WeedSpecies, pageWidth - 28);
+
+                    // Check if we need a new page before adding text
+                    const textHeight = weedLines.length * 5 + 10;
+                    if (y + textHeight > 220) { doc.addPage(); y = 20; doc.setFont(undefined, 'bold'); doc.text(`Weed Species:`, 14, y); doc.setFont(undefined, 'normal'); }
+
                     doc.text(weedLines, 14, y + 5);
                     y += (weedLines.length * 5) + 5;
                 }
@@ -9010,24 +9003,34 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 // Conclusion & Notes
                 if (trial.Conclusion) {
                     // Check if we need a new page
-                    if (y > 240) { doc.addPage(); y = 20; }
+                    if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                     doc.setFont(undefined, 'bold');
                     doc.text("Conclusion:", 14, y);
                     doc.setFont(undefined, 'normal');
                     const maxWidth = pageWidth - 28;
                     const conclusionLines = doc.splitTextToSize(trial.Conclusion || 'N/A', maxWidth);
+
+                    // Check if text will overflow
+                    const textHeight = conclusionLines.length * 5 + 8;
+                    if (y + textHeight > 220) { doc.addPage(); y = 20; doc.setFont(undefined, 'bold'); doc.text("Conclusion:", 14, y); doc.setFont(undefined, 'normal'); }
+
                     doc.text(conclusionLines, 14, y + 5, { maxWidth: maxWidth, align: 'justify' });
                     y += (conclusionLines.length * 5) + 8;
                 }
 
                 if (trial.Notes) {
                     // Check if we need a new page
-                    if (y > 240) { doc.addPage(); y = 20; }
+                    if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                     doc.setFont(undefined, 'bold');
                     doc.text("Notes:", 14, y);
                     doc.setFont(undefined, 'normal');
                     const maxWidth = pageWidth - 28;
                     const notesLines = doc.splitTextToSize(trial.Notes || 'N/A', maxWidth);
+
+                    // Check if text will overflow
+                    const textHeight = notesLines.length * 5 + 12;
+                    if (y + textHeight > 220) { doc.addPage(); y = 20; doc.setFont(undefined, 'bold'); doc.text("Notes:", 14, y); doc.setFont(undefined, 'normal'); }
+
                     doc.text(notesLines, 14, y + 5, { maxWidth: maxWidth, align: 'justify' });
                     y += (notesLines.length * 5) + 12;
                 }
@@ -9053,44 +9056,14 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 document.body.appendChild(tempContainer);
 
                 try {
-                    // Prepare chart data
-                    const chartData = prepareTrialChartData(trial);
-                    if (chartData) {
-                        const { coverDatasets, coverChartOptions, phytoData, phytoChartOptions } = chartData;
+                    // Generate high-resolution charts
+                    const chartImages = await generateScientificCharts(trial, tempContainer);
+                    coverChartImg = chartImages.cover;
+                    phytoChartImg = chartImages.phyto;
 
-                        // Render cover chart
-                        const coverCanvas = document.createElement('canvas');
-                        coverCanvas.width = 1200;
-                        coverCanvas.height = 600;
-                        tempContainer.appendChild(coverCanvas);
+                    // This line was likely intended for DOCX generation, not PDF.
+                    // const content = generateScientificHTML(trial, options, coverChartImg, phytoChartImg);
 
-                        new Chart(coverCanvas, {
-                            type: 'line',
-                            data: { datasets: coverDatasets },
-                            options: coverChartOptions
-                        });
-
-                        // Render phyto chart
-                        const phytoCanvas = document.createElement('canvas');
-                        phytoCanvas.width = 1200;
-                        phytoCanvas.height = 600;
-                        tempContainer.appendChild(phytoCanvas);
-
-                        if (phytoData.data.length > 0) {
-                            new Chart(phytoCanvas, {
-                                type: 'line',
-                                data: { datasets: [phytoData] },
-                                options: phytoChartOptions
-                            });
-                        }
-
-                        // Wait for Chart.js to render
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-
-                        // Capture chart images
-                        coverChartImg = coverCanvas.toDataURL('image/png');
-                        phytoChartImg = phytoCanvas.toDataURL('image/png');
-                    }
                 } catch (e) {
                     console.warn('Chart generation failed:', e);
                 } finally {
@@ -9099,7 +9072,8 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
 
                 // --- EFFICACY ANALYSIS (with chart) ---
                 if (summaries.cover || coverChartImg) {
-                    if (y > 200) { doc.addPage(); y = 20; }
+                    // Ensure header has room for content (60mm = header + chart/text)
+                    if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                     doc.setFont(undefined, 'bold');
                     doc.setFontSize(14);
                     doc.text("Efficacy Analysis:", 14, y);
@@ -9121,6 +9095,11 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         doc.setFontSize(9);
                         const maxWidth = pageWidth - 28;
                         const lines = doc.splitTextToSize("Analysis: " + summaries.cover, maxWidth);
+
+                        // Check if we need a new page before adding text
+                        const textHeight = lines.length * 4 + 10;
+                        if (y + textHeight > 220) { doc.addPage(); y = 20; }
+
                         doc.text(lines, 14, y, { maxWidth: maxWidth, align: 'justify' });
                         y += (lines.length * 4) + 10;
                     }
@@ -9128,7 +9107,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
 
                 // --- PHYTOTOXICITY ANALYSIS (with chart) ---
                 if (summaries.phyto || phytoChartImg) {
-                    if (y > 200) { doc.addPage(); y = 20; }
+                    if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                     doc.setFont(undefined, 'bold');
                     doc.setFontSize(14);
                     doc.text("Phytotoxicity Analysis:", 14, y);
@@ -9150,6 +9129,11 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         doc.setFontSize(9);
                         const maxWidth = pageWidth - 28;
                         const lines = doc.splitTextToSize("Analysis: " + summaries.phyto, maxWidth);
+
+                        // Check if we need a new page before adding text
+                        const textHeight = lines.length * 4 + 10;
+                        if (y + textHeight > 220) { doc.addPage(); y = 20; }
+
                         doc.text(lines, 14, y, { maxWidth: maxWidth, align: 'justify' });
                         y += (lines.length * 4) + 10;
                     }
@@ -9159,7 +9143,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 if (state.settings.includeTimeline) {
                     const timelineData = safeJsonParse(trial.EfficacyDataJSON, []);
                     if (timelineData.length > 0) {
-                        if (y > 220) { doc.addPage(); y = 20; }
+                        if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                         doc.setFontSize(14);
                         doc.setFont(undefined, 'bold');
                         doc.text("Weed Status Timeline", 14, y);
@@ -9187,7 +9171,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 if (options.withIngredients) {
                     const formulation = state.formulations.find(f => f.ID === trial.FormulationID);
                     if (formulation) {
-                        if (y > 220) { doc.addPage(); y = 20; }
+                        if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                         const ingredients = safeJsonParse(formulation.IngredientsJSON);
                         doc.autoTable({
                             startY: y,
@@ -9203,7 +9187,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 // --- PHOTO LOG ---
                 const photos = safeJsonParse(trial.PhotoURLs);
                 if (photos.length > 0) {
-                    if (y > 200) { doc.addPage(); y = 20; }
+                    if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                     doc.setFontSize(14);
                     doc.setFont(undefined, 'bold');
                     doc.text("Photo Log", 14, y);
@@ -9216,14 +9200,37 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         try {
                             const imgData = await getImageAsResizedBase64(p.url, 300);
                             if (imgData) {
-                                if (xOffset + 50 > pageWidth) { xOffset = 14; y += 60; }
-                                if (y > 250) { doc.addPage(); y = 20; xOffset = 14; }
+                                // Calculate aspect ratio and proper dimensions
+                                const img = new Image();
+                                img.src = imgData;
+                                await new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
 
-                                doc.addImage(imgData, 'JPEG', xOffset, y, 50, 50);
+                                const aspectRatio = img.width / img.height;
+                                const maxSize = 50; // Maximum dimension in mm
+                                let imgWidth, imgHeight;
+
+                                if (aspectRatio > 1) {
+                                    // Landscape: width is larger
+                                    imgWidth = maxSize;
+                                    imgHeight = maxSize / aspectRatio;
+                                } else {
+                                    // Portrait or square: height is larger or equal
+                                    imgHeight = maxSize;
+                                    imgWidth = maxSize * aspectRatio;
+                                }
+
+                                if (xOffset + imgWidth > pageWidth) { xOffset = 14; y += 60; }
+                                if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; xOffset = 14; }
+
+                                doc.addImage(imgData, 'JPEG', xOffset, y, imgWidth, imgHeight);
                                 doc.setFontSize(8);
-                                const primaryLabel = p.label ? p.label : (p.date ? `Photo: ${p.date}` : '-');
-                                doc.text(primaryLabel, xOffset, y + 54);
-                                xOffset += 60;
+                                let primaryLabel = p.label ? p.label : (p.date ? `Photo: ${p.date}` : '-');
+                                // Convert old "Synced" labels to "Photo:" format
+                                if (primaryLabel.startsWith('Synced ')) {
+                                    primaryLabel = primaryLabel.replace('Synced ', 'Photo: ');
+                                }
+                                doc.text(primaryLabel, xOffset, y + maxSize + 4);
+                                xOffset += maxSize + 10;
                             }
                         } catch (e) { console.warn("Could not add image to PDF", e); }
                     }
@@ -9256,7 +9263,26 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         try {
                             const imgData = await getImageAsResizedBase64(p.url, 300);
                             if (imgData) {
-                                doc.addImage(imgData, 'JPEG', 14, weedY, 60, 60);
+                                // Calculate aspect ratio and proper dimensions
+                                const img = new Image();
+                                img.src = imgData;
+                                await new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+
+                                const aspectRatio = img.width / img.height;
+                                const maxSize = 60; // Maximum dimension in mm
+                                let imgWidth, imgHeight;
+
+                                if (aspectRatio > 1) {
+                                    // Landscape: width is larger
+                                    imgWidth = maxSize;
+                                    imgHeight = maxSize / aspectRatio;
+                                } else {
+                                    // Portrait or square: height is larger or equal
+                                    imgHeight = maxSize;
+                                    imgWidth = maxSize * aspectRatio;
+                                }
+
+                                doc.addImage(imgData, 'JPEG', 14, weedY, imgWidth, imgHeight);
                                 const bestMatch = p.identifications?.[0];
                                 doc.setFontSize(12);
                                 doc.setFont(undefined, 'bold');
@@ -9276,6 +9302,22 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
             }
 
             async function generateComprehensivePdf(trialId, options = { withIngredients: true, withWeeds: false, chartImages: null }) {
+                // If chartImages are provided but we want high quality, we might re-generate them.
+                // However, let's check if we can generate them live here.
+                if (!options.chartImages || !options.chartImages.cover) {
+                    try {
+                        const trial = state.trials.find(t => t.ID === trialId);
+                        if (trial) {
+                            const highResCharts = await generateScientificCharts(trial);
+                            options.chartImages = options.chartImages || {};
+                            options.chartImages.cover = highResCharts.cover;
+                            options.chartImages.phyto = highResCharts.phyto;
+                        }
+                    } catch (e) {
+                        console.error("Failed to generate high-res charts for PDF:", e);
+                    }
+                }
+
                 const trial = state.trials.find(t => t.ID === trialId);
                 if (!trial) return;
                 showToast('Generating PDF...', 'info');
@@ -9351,7 +9393,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         // For now, I will add the code to RENDER it if it exists.
 
                         if (stats.anovaResults) {
-                            if (y > 220) { doc.addPage(); y = 20; }
+                            if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                             doc.setFont(undefined, 'bold');
                             doc.text("Statistical Analysis (ANOVA):", 14, y);
                             y += 6;
@@ -9402,7 +9444,8 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 const summaries = safeJsonParse(trial.AISummariesJSON, {});
                 if (options.withEfficacy !== false) {
                     if (summaries.cover || options.chartImages?.cover) {
-                        if (y > 200) { doc.addPage(); y = 20; }
+                        // Ensure header has room for content (60mm = header + chart)
+                        if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                         doc.setFont(undefined, 'bold');
                         doc.text("Efficacy Analysis:", 14, y);
                         y += 8;
@@ -9433,7 +9476,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                     }
 
                     if (summaries.phyto || options.chartImages?.phyto) {
-                        if (y > 200) { doc.addPage(); y = 20; }
+                        if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
 
                         if (options.chartImages?.phyto) {
                             try {
@@ -9469,7 +9512,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 if (options.withTimeline) {
                     const efficacyData = safeJsonParse(trial.EfficacyDataJSON);
                     if (efficacyData.length > 0) {
-                        if (y > 220) { doc.addPage(); y = 20; }
+                        if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                         doc.setFontSize(14);
                         doc.setFont(undefined, 'bold');
                         doc.text("Weed Status Timeline", 14, y);
@@ -9510,7 +9553,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 // --- Photos ---
                 const photos = safeJsonParse(trial.PhotoURLs);
                 if (photos.length > 0) {
-                    if (y > 200) { doc.addPage(); y = 20; }
+                    if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; }
                     doc.setFontSize(14);
                     doc.setFont(undefined, 'bold');
                     doc.text("Photo Log", 14, y);
@@ -9523,20 +9566,43 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         try {
                             const imgData = await getImageAsResizedBase64(p.url, 300); // Helper to get Base64
                             if (imgData) {
-                                if (xOffset + 50 > pageWidth) { xOffset = 14; y += 60; }
-                                if (y > 250) { doc.addPage(); y = 20; xOffset = 14; }
+                                // Calculate aspect ratio and proper dimensions
+                                const img = new Image();
+                                img.src = imgData;
+                                await new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
 
-                                doc.addImage(imgData, 'JPEG', xOffset, y, 50, 50);
+                                const aspectRatio = img.width / img.height;
+                                const maxSize = 50; // Maximum dimension in mm
+                                let imgWidth, imgHeight;
+
+                                if (aspectRatio > 1) {
+                                    // Landscape: width is larger
+                                    imgWidth = maxSize;
+                                    imgHeight = maxSize / aspectRatio;
+                                } else {
+                                    // Portrait or square: height is larger or equal
+                                    imgHeight = maxSize;
+                                    imgWidth = maxSize * aspectRatio;
+                                }
+
+                                if (xOffset + imgWidth > pageWidth) { xOffset = 14; y += 60; }
+                                if (y + 60 > pageHeight - 20) { doc.addPage(); y = 20; xOffset = 14; }
+
+                                doc.addImage(imgData, 'JPEG', xOffset, y, imgWidth, imgHeight);
                                 doc.setFontSize(8);
                                 // If label exists, show label. If not, fallback to date with prefix.
-                                const primaryLabel = p.label ? p.label : (p.date ? `Photo: ${p.date}` : '-');
-                                doc.text(primaryLabel, xOffset, y + 54);
+                                let primaryLabel = p.label ? p.label : (p.date ? `Photo: ${p.date}` : '-');
+                                // Convert old "Synced" labels to "Photo:" format
+                                if (primaryLabel.startsWith('Synced ')) {
+                                    primaryLabel = primaryLabel.replace('Synced ', 'Photo: ');
+                                }
+                                doc.text(primaryLabel, xOffset, y + maxSize + 4);
 
                                 // Only show secondary date if it's explicitly requested AND a label exists (to avoid double date)
                                 if (p.label && options.showPhotoDates) {
-                                    doc.text(p.date || '', xOffset, y + 58);
+                                    doc.text(p.date || '', xOffset, y + maxSize + 8);
                                 }
-                                xOffset += 60;
+                                xOffset += maxSize + 10;
                             }
                         } catch (e) { console.warn("Could not add image to PDF", e); }
                     }
@@ -9569,7 +9635,26 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                             try {
                                 const imgData = await getImageAsResizedBase64(p.url, 300);
                                 if (imgData) {
-                                    doc.addImage(imgData, 'JPEG', 14, weedY, 60, 60);
+                                    // Calculate aspect ratio and proper dimensions
+                                    const img = new Image();
+                                    img.src = imgData;
+                                    await new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+
+                                    const aspectRatio = img.width / img.height;
+                                    const maxSize = 60; // Maximum dimension in mm
+                                    let imgWidth, imgHeight;
+
+                                    if (aspectRatio > 1) {
+                                        // Landscape: width is larger
+                                        imgWidth = maxSize;
+                                        imgHeight = maxSize / aspectRatio;
+                                    } else {
+                                        // Portrait or square: height is larger or equal
+                                        imgHeight = maxSize;
+                                        imgWidth = maxSize * aspectRatio;
+                                    }
+
+                                    doc.addImage(imgData, 'JPEG', 14, weedY, imgWidth, imgHeight);
                                     const bestMatch = p.identifications?.[0];
                                     doc.setFontSize(12);
                                     doc.text(bestMatch?.name || 'Unknown', 80, weedY + 10);
@@ -10928,18 +11013,17 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                 const chartImages = {};
 
                 try {
-                    // Create temporary hidden container
                     const tempDiv = document.createElement('div');
                     tempDiv.style.position = 'absolute';
                     tempDiv.style.left = '-9999px';
-                    tempDiv.style.width = '800px';
-                    tempDiv.style.height = '400px';
+                    tempDiv.style.width = '1600px';
+                    tempDiv.style.height = '800px';
                     document.body.appendChild(tempDiv);
 
                     // WCE Over Time Chart
                     const wceCanvas = document.createElement('canvas');
-                    wceCanvas.width = 800;
-                    wceCanvas.height = 400;
+                    wceCanvas.width = 1600;
+                    wceCanvas.height = 800;
                     tempDiv.appendChild(wceCanvas);
 
                     const treatments = [...new Set(trials.map(t => t.FormulationID || t.FormulationName))];
@@ -10959,8 +11043,8 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                             data,
                             borderColor: colors[idx % colors.length],
                             backgroundColor: colors[idx % colors.length] + '33',
-                            borderWidth: 3,
-                            pointRadius: 6,
+                            borderWidth: 4,
+                            pointRadius: 0,
                             pointHoverRadius: 8,
                             tension: 0.3
                         };
@@ -10973,12 +11057,12 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                             responsive: false,
                             animation: false,
                             plugins: {
-                                title: { display: true, text: 'Weed Control Efficacy Over Time', font: { size: 16, weight: 'bold' } },
-                                legend: { position: 'right' }
+                                title: { display: true, text: 'Weed Control Efficacy Over Time', font: { size: 32, weight: 'bold' } },
+                                legend: { position: 'right', labels: { font: { size: 20 } } }
                             },
                             scales: {
-                                x: { type: 'linear', title: { display: true, text: 'Days After Application' } },
-                                y: { min: 0, max: 100, title: { display: true, text: 'WCE (%)' } }
+                                x: { type: 'linear', title: { display: true, text: 'Days After Application', font: { size: 24 } }, ticks: { font: { size: 18 } } },
+                                y: { min: 0, max: 100, title: { display: true, text: 'WCE (%)', font: { size: 24 } }, ticks: { font: { size: 18 } } }
                             }
                         }
                     });
@@ -10993,8 +11077,8 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                     // Skip if no valid data (incomplete/partial results)
                     if (finalRes && finalRes.treatmentStats && finalRes.treatmentStats.length > 0 && !finalRes.error) {
                         const perfCanvas = document.createElement('canvas');
-                        perfCanvas.width = 800;
-                        perfCanvas.height = 400;
+                        perfCanvas.width = 1600;
+                        perfCanvas.height = 800;
                         tempDiv.appendChild(perfCanvas);
 
                         const perfData = (finalRes.treatmentStats || []).map(ts => {
@@ -11018,11 +11102,12 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                                 responsive: false,
                                 animation: false,
                                 plugins: {
-                                    title: { display: true, text: `Treatment Performance at ${finalDat} DAA`, font: { size: 16, weight: 'bold' } },
+                                    title: { display: true, text: `Treatment Performance at ${finalDat} DAA`, font: { size: 32, weight: 'bold' } },
                                     legend: { display: false }
                                 },
                                 scales: {
-                                    y: { beginAtZero: true, title: { display: true, text: project.Metric } }
+                                    y: { beginAtZero: true, title: { display: true, text: project.Metric, font: { size: 24 } }, ticks: { font: { size: 18 } } },
+                                    x: { ticks: { font: { size: 18 } } }
                                 }
                             }
                         });
@@ -11037,8 +11122,8 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
 
                     // 3. Phytotoxicity Chart
                     const phytoCanvas = document.createElement('canvas');
-                    phytoCanvas.width = 800;
-                    phytoCanvas.height = 400;
+                    phytoCanvas.width = 1600;
+                    phytoCanvas.height = 800;
                     tempDiv.appendChild(phytoCanvas);
 
                     const engine = new AnalysisEngine(projectId, state);
@@ -11061,8 +11146,8 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                                 borderColor: colors[i % colors.length],
                                 backgroundColor: colors[i % colors.length] + '33',
                                 tension: 0.3,
-                                borderWidth: 2,
-                                pointRadius: 4
+                                borderWidth: 3,
+                                pointRadius: 3
                             };
                         });
 
@@ -11072,10 +11157,13 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                             options: {
                                 responsive: false, animation: false,
                                 plugins: {
-                                    title: { display: true, text: 'Phytotoxicity (Crop Safety) Over Time', font: { size: 16, weight: 'bold' } },
-                                    legend: { position: 'right' }
+                                    title: { display: true, text: 'Phytotoxicity (Crop Safety) Over Time', font: { size: 32, weight: 'bold' } },
+                                    legend: { position: 'right', labels: { font: { size: 20 } } }
                                 },
-                                scales: { y: { min: 0, max: 10, title: { display: true, text: 'Score (0-10)' } } }
+                                scales: {
+                                    y: { min: 0, max: 10, title: { display: true, text: 'Score (0-10)', font: { size: 24 } }, ticks: { font: { size: 18 } } },
+                                    x: { ticks: { font: { size: 18 } } }
+                                }
                             }
                         });
                         await new Promise(resolve => setTimeout(resolve, 500));
@@ -11406,8 +11494,6 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         let trimmed = line.trim();
                         if (!trimmed) return;
 
-                        checkPageBreak(30);
-
                         // IMPROVED HEADER DETECTION:
                         // Matches "Methodology", "**Results**", "## Conclusions", "Methodology: ...content..."
                         const headerRegex = /^[\*\#\-\s]*(Methodology|Results|Conclusions?|Conclusion and Recommendation)[\*\:\s]*/i;
@@ -11425,6 +11511,10 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                                 // Capitalize first letter properly
                                 headerName = headerName.charAt(0).toUpperCase() + headerName.slice(1);
                             }
+
+                            // CRITICAL: Reserve enough space for header + typical paragraph (~10-12 lines = 60mm)
+                            // This prevents orphaned headers when the following body text is too long
+                            checkPageBreak(60);
 
                             // Render Header
                             y += 4;
@@ -12374,6 +12464,13 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                     };
                 }
 
+                const generateDocBtn = document.getElementById('generate-doc-from-preview');
+                if (generateDocBtn) {
+                    generateDocBtn.onclick = () => {
+                        exportScientificReportAsDOC(trialId);
+                    };
+                }
+
                 const generatePdfBtn = document.getElementById('generate-pdf-from-preview');
                 if (generatePdfBtn) {
                     generatePdfBtn.onclick = () => {
@@ -13215,7 +13312,7 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                             if (idx > -1) {
                                 photos[idx].url = publicUrl;
                                 if (!photos[idx].label || photos[idx].label === "Processing...") {
-                                    photos[idx].label = item.photo.label || `Synced ${new Date().toLocaleDateString()}`;
+                                    photos[idx].label = item.photo.label || `Photo: ${item.photo.date || new Date().toLocaleDateString()}`;
                                 }
                                 delete photos[idx].fileData;
                             } else {
@@ -13636,6 +13733,12 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                     }
                     else if (action === 'run-analysis') {
                         render.scientificReport(id);
+                    }
+                    else if (action === 'export-scientific-trial-report-doc-no-ing') {
+                        exportScientificReportAsDOC(id, { includeIngredients: false });
+                    }
+                    else if (action === 'export-scientific-trial-report-doc-with-ing') {
+                        exportScientificReportAsDOC(id, { includeIngredients: true });
                     }
                 } catch (err) {
                     console.error('Action Handler Error:', err);
@@ -16322,6 +16425,756 @@ Specific agronomic recommendation based on data trends, including crop safety (p
                 window.generateRegulatoryProjectReport(projectId);
             }, 500);
         };
+
+        // --- DOC EXPORT FUNCTIONS ---
+
+        // Helper: Fetch and Resize Image for DOC
+        async function getImageAsResizedBase64(url, maxWidth) {
+            try {
+                // Reuse existing helpers if available
+                if (typeof fetchPhotoAsBase64 === 'function' && typeof compressImageForPDF === 'function') {
+                    const photoData = await fetchPhotoAsBase64(url);
+                    if (!photoData || !photoData.fileData) return null;
+                    // Use a large maxHeight (2000) to ensure the width is the only constraint, preserving aspect ratio
+                    const compressed = await compressImageForPDF(photoData.fileData, maxWidth, 2000);
+                    return compressed.fileData;
+                }
+
+                // Fallback implementation
+                const response = await fetch(`https://images.weserv.nl/?url=${encodeURIComponent(url)}&output=jpg`);
+                if (!response.ok) return null;
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.warn('Image fetch failed:', e);
+                return null;
+            }
+        }
+
+        // Helper: Generate High Quality Charts for Scientific Reports (DOC/PDF)
+        async function generateScientificCharts(trial) {
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.width = '1600px';
+            tempDiv.style.height = '800px';
+            document.body.appendChild(tempDiv);
+
+            const charts = { cover: null, phyto: null };
+
+            try {
+                const chartData = prepareTrialChartData(trial);
+                if (!chartData) return charts;
+
+                // Render Cover Chart
+                const coverCanvas = document.createElement('canvas');
+                coverCanvas.width = 1600;
+                coverCanvas.height = 800;
+                tempDiv.appendChild(coverCanvas);
+
+                await new Promise(resolve => {
+                    const ctx = coverCanvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: { datasets: chartData.coverDatasets },
+                        options: {
+                            ...chartData.coverChartOptions,
+                            animation: false,
+                            responsive: false,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                ...chartData.coverChartOptions.plugins,
+                                legend: { labels: { font: { size: 18, weight: 'bold' } } }
+                            },
+                            scales: {
+                                x: { ...chartData.coverChartOptions.scales.x, ticks: { font: { size: 16 } } },
+                                y: { ...chartData.coverChartOptions.scales.y, ticks: { font: { size: 16 } } }
+                            }
+                        }
+                    });
+                    // Short delay to ensure rendering is complete
+                    setTimeout(resolve, 200);
+                });
+                charts.cover = coverCanvas.toDataURL('image/png');
+
+                // Render Phyto Chart
+                const phytoCanvas = document.createElement('canvas');
+                phytoCanvas.width = 1600;
+                phytoCanvas.height = 800;
+                tempDiv.appendChild(phytoCanvas);
+
+                await new Promise(resolve => {
+                    const ctx = phytoCanvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: { datasets: [chartData.phytoData] },
+                        options: {
+                            ...chartData.phytoChartOptions,
+                            animation: false,
+                            responsive: false,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                ...chartData.phytoChartOptions.plugins,
+                                legend: { labels: { font: { size: 18, weight: 'bold' } } }
+                            },
+                            scales: {
+                                x: { ...chartData.phytoChartOptions.scales.x, ticks: { font: { size: 16 } } },
+                                y: { ...chartData.phytoChartOptions.scales.y, ticks: { font: { size: 16 } } }
+                            }
+                        }
+                    });
+                    setTimeout(resolve, 200);
+                });
+                charts.phyto = phytoCanvas.toDataURL('image/png');
+
+            } catch (err) {
+                console.error("Error in generateScientificCharts:", err);
+            } finally {
+                document.body.removeChild(tempDiv);
+            }
+            return charts;
+        }
+
+        // Helper: Prepare Chart Data for DOC
+        function prepareTrialChartData(trial) {
+            try {
+                const efficacy = safeJsonParse(trial.EfficacyDataJSON, []);
+                if (!efficacy || efficacy.length === 0) return null;
+
+                // Sort by DAA
+                const data = efficacy.sort((a, b) => a.daa - b.daa);
+
+                // Cover Data (Total)
+                const coverPoints = data.map(d => {
+                    const total = (d.weedDetails || []).reduce((sum, w) => sum + parseFloat(w.cover || 0), 0);
+                    return { x: d.daa, y: total };
+                }).filter(p => p.x != null);
+
+                // Phyto Data
+                const phytoPoints = data.map(d => ({ x: d.daa, y: parseFloat(d.phyto || 0) })).filter(p => p.x != null);
+
+                return {
+                    coverDatasets: [{
+                        label: 'Total Weed Cover %',
+                        data: coverPoints,
+                        borderColor: '#10b981',
+                        backgroundColor: '#10b981',
+                        tension: 0.3,
+                        fill: false
+                    }],
+                    coverChartOptions: {
+                        scales: {
+                            x: { type: 'linear', title: { display: true, text: 'DAA' } },
+                            y: { beginAtZero: true, max: 100, title: { display: true, text: 'Cover %' } }
+                        },
+                        plugins: { legend: { display: true }, title: { display: true, text: 'Efficacy' } }
+                    },
+                    phytoData: {
+                        label: 'Crop Phytotoxicity %',
+                        data: phytoPoints,
+                        borderColor: '#ef4444',
+                        backgroundColor: '#ef4444',
+                        tension: 0.3,
+                        fill: false
+                    },
+                    phytoChartOptions: {
+                        scales: {
+                            x: { type: 'linear', title: { display: true, text: 'DAA' } },
+                            y: { beginAtZero: true, max: 100, title: { display: true, text: 'Phyto %' } }
+                        },
+                        plugins: { legend: { display: true }, title: { display: true, text: 'Phytotoxicity' } }
+                    }
+                };
+            } catch (e) {
+                console.error('prepareTrialChartData failed:', e);
+                return null;
+            }
+        }
+
+        function renderIngredientsTable(trial) {
+            const ingredients = safeJsonParse(trial.IngredientsJSON, []);
+            if (ingredients.length === 0) return '';
+
+            let rows = ingredients.map(ing => `
+                <tr>
+                    <td>${ing.name || ing.Name}</td>
+                    <td>${ing.amount || ing.Amount} ${ing.unit || ing.Unit}</td>
+                    <td>${ing.cost || ing.Cost || '-'}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <h3 style="margin-top:20px;">Ingredients</h3>
+                <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+                    <thead>
+                        <tr style="background-color:#f3f4f6;">
+                            <th style="border:1px solid #d1d5db; padding:8px; text-align:left;">Name</th>
+                            <th style="border:1px solid #d1d5db; padding:8px; text-align:left;">Amount</th>
+                            <th style="border:1px solid #d1d5db; padding:8px; text-align:left;">Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function exportScientificReportAsDOC(trialId, options = {}) {
+            const trial = state.trials.find(t => t.ID === trialId);
+            if (!trial) return;
+
+            showToast('Generating Word Document...', 'info');
+
+            try {
+                // 1. Prepare Data & Charts
+                const chartImages = await generateScientificCharts(trial);
+                const coverChartImg = chartImages.cover;
+                const phytoChartImg = chartImages.phyto;
+
+                // 2. Generate HTML Content
+                const contentHtml = await generateScientificHTML(trial, coverChartImg, phytoChartImg, options);
+
+                // 3. Convert to DOCX
+                const fullHtml = `<!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: 'Times New Roman', serif; font-size: 11pt; }
+                        h1 { color: #0d9488; font-size: 24pt; font-weight: bold; text-align: center; margin-bottom: 20px; }
+                        h2 { color: #0f766e; font-size: 16pt; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+                        h3 { font-size: 13pt; font-weight: bold; margin-top: 15px; }
+                        p { margin-bottom: 10px; line-height: 1.5; text-align: justify; }
+                        table { border-collapse: collapse; width: 100%; margin-bottom: 15px; }
+                        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 10pt; }
+                        th { background-color: #f0fdf9; font-weight: bold; }
+                        .center { text-align: center; }
+                        .img-container { text-align: center; margin: 20px 0; }
+                        img { max-width: 100%; height: auto; }
+                        .meta-table td { border: none; padding: 4px; }
+                    </style>
+                </head>
+                <body>
+                    ${contentHtml}
+                </body>
+                </html>`;
+
+                const converted = htmlDocx.asBlob(fullHtml, {
+                    orientation: 'portrait',
+                    margins: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+                });
+
+                saveAs(converted, `Scientific_Report_${trial.FormulationName}.docx`);
+                showToast('DOC Downloaded!', 'success');
+
+            } catch (err) {
+                console.error('DOC Export Error:', err);
+                showToast('Failed to export DOC', 'error');
+            }
+        }
+
+        // Helper: Render Photo Grid (Fixed Layout for DOC)
+        function renderPhotoGridHTML(photos) {
+            if (!photos || photos.length === 0) return '<p>No photos available.</p>';
+
+            // We use a fixed-width table (650 is standard for A4 Word width)
+            let html = '<table width="100%" style="width: 100%; border-collapse: collapse; margin-top: 20px;">';
+
+            const imagesPerRow = 2; // This creates the 2-column look from your 1st image
+
+            for (let i = 0; i < photos.length; i += imagesPerRow) {
+                html += '<tr>';
+                for (let j = 0; j < imagesPerRow; j++) {
+                    const photo = photos[i + j];
+                    if (photo && photo.base64) {
+                        // We set a hard width of 300 to ensure they fill the column space
+                        html += `
+                            <td width="50%" style="width: 50%; padding: 10px; vertical-align: top; text-align: center;">
+                                <img src="${photo.base64}" width="300" style="width: 300px; display: block; margin-bottom: 5px;" />
+                                <div style="font-size: 10pt; font-family: Arial; font-weight: bold;">${photo.label || 'Trial Photo'}</div>
+                                <div style="font-size: 9pt; color: #555;">${photo.date || ''}</div>
+                            </td>`;
+                    } else {
+                        // Empty cell to keep the grid perfectly aligned
+                        html += '<td width="50%">&nbsp;</td>';
+                    }
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            return html;
+        }
+
+        // Helper: Generate Charts for DOC (Off-screen)
+        async function generateRegulatoryChartsForDOC(projectId) {
+            const project = state.projects.find(p => p.ID === projectId);
+            if (!project) return {};
+
+            const chartImages = {};
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.width = '1600px';
+            tempDiv.style.height = '800px';
+            document.body.appendChild(tempDiv);
+
+            try {
+                // Prepare Data
+                const blocks = state.blocks.filter(b => b.ProjectID === projectId);
+                const trials = state.trials.filter(t => t.ProjectID === projectId);
+
+                let results = project.AnalysisResults;
+                if (!results || Object.keys(results).length === 0) {
+                    try { results = project.AnalysisResultsJSON ? JSON.parse(project.AnalysisResultsJSON) : {}; } catch (e) { }
+                }
+                const daas = Object.keys(results).sort((a, b) => parseInt(a) - parseInt(b));
+                const treatments = [...new Set(trials.map(t => t.FormulationID || t.FormulationName))];
+                const colors = ['#10b981', '#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+                // 1. WCE Chart
+                const wceCanvas = document.createElement('canvas');
+                wceCanvas.width = 1600; wceCanvas.height = 800;
+                tempDiv.appendChild(wceCanvas);
+
+                const wceDatasets = treatments.map((tId, idx) => {
+                    const tName = state.formulations.find(f => f.ID === tId)?.Name || tId;
+                    const data = daas.map(dat => {
+                        const res = results[dat];
+                        if (!res || !res.treatmentStats) return null;
+                        const ts = res.treatmentStats.find(s => s.treatmentId === tId);
+                        return ts ? { x: parseInt(dat), y: ts.wce } : null;
+                    }).filter(Boolean);
+
+                    return {
+                        label: tName, data,
+                        borderColor: colors[idx % colors.length],
+                        backgroundColor: colors[idx % colors.length] + '33',
+                        borderWidth: 4, tension: 0.3, pointRadius: 0
+                    };
+                });
+
+                new Chart(wceCanvas, {
+                    type: 'line', data: { datasets: wceDatasets },
+                    options: {
+                        responsive: false, animation: false,
+                        plugins: { title: { display: true, text: 'Weed Control Efficacy Over Time', font: { size: 32, weight: 'bold' } }, legend: { position: 'right', labels: { font: { size: 20 } } } },
+                        scales: { x: { type: 'linear', title: { display: true, text: 'DAA', font: { size: 24 } }, ticks: { font: { size: 18 } } }, y: { min: 0, max: 100, title: { display: true, text: 'WCE (%)', font: { size: 24 } }, ticks: { font: { size: 18 } } } }
+                    }
+                });
+                await new Promise(r => setTimeout(r, 300));
+                chartImages.wceTimeline = wceCanvas.toDataURL('image/png');
+
+                // 2. Performance Chart (Final)
+                if (daas.length > 0) {
+                    const finalDat = daas[daas.length - 1];
+                    const finalRes = results[finalDat];
+                    if (finalRes && finalRes.treatmentStats) {
+                        const perfCanvas = document.createElement('canvas');
+                        perfCanvas.width = 1600; perfCanvas.height = 800;
+                        tempDiv.appendChild(perfCanvas);
+
+                        const perfData = finalRes.treatmentStats.map(ts => {
+                            const tName = state.formulations.find(f => f.ID === ts.treatmentId)?.Name || 'Unknown';
+                            return { treatment: tName, mean: ts.mean };
+                        }).sort((a, b) => b.mean - a.mean);
+
+                        new Chart(perfCanvas, {
+                            type: 'bar',
+                            data: {
+                                labels: perfData.map(d => d.treatment),
+                                datasets: [{
+                                    label: project.Metric, data: perfData.map(d => d.mean),
+                                    backgroundColor: perfData.map((d, i) => colors[i % colors.length])
+                                }]
+                            },
+                            options: {
+                                responsive: false, animation: false,
+                                plugins: { title: { display: true, text: `Performance at ${finalDat} DAA`, font: { size: 32, weight: 'bold' } }, legend: { display: false } }, // Increased font size
+                                scales: { y: { beginAtZero: true, ticks: { font: { size: 18 } } }, x: { ticks: { font: { size: 18 } } } }
+                            }
+                        });
+                        await new Promise(r => setTimeout(r, 300));
+                        chartImages.finalPerformance = perfCanvas.toDataURL('image/png');
+                    }
+                }
+
+                // 3. Phyto Chart
+                const phytoCanvas = document.createElement('canvas');
+                phytoCanvas.width = 1600; phytoCanvas.height = 800;
+                tempDiv.appendChild(phytoCanvas);
+
+                const engine = new AnalysisEngine(projectId, state);
+                const allDaas = new Set();
+                engine.trials.forEach(t => { safeJsonParse(t.EfficacyDataJSON, []).forEach(e => allDaas.add(e.daa)); });
+                const sortedDaas = [...allDaas].sort((a, b) => a - b);
+
+                if (sortedDaas.length > 0) {
+                    const phytoDatasets = engine.treatments.map((tName, i) => {
+                        const data = sortedDaas.map(d => {
+                            const repValues = engine.getData('phyto', null, parseInt(d))[tName];
+                            return repValues ? jStat.mean(repValues) : 0;
+                        });
+                        return {
+                            label: tName, data,
+                            borderColor: colors[i % colors.length],
+                            backgroundColor: colors[i % colors.length] + '33',
+                            tension: 0.3, borderWidth: 3, pointRadius: 3
+                        };
+                    });
+
+                    new Chart(phytoCanvas, {
+                        type: 'line', data: { labels: sortedDaas.map(d => `${d} DAA`), datasets: phytoDatasets },
+                        options: {
+                            responsive: false, animation: false,
+                            plugins: { title: { display: true, text: 'Phytotoxicity Over Time', font: { size: 32, weight: 'bold' } }, legend: { position: 'right', labels: { font: { size: 20 } } } },
+                            scales: { y: { min: 0, max: 10, title: { display: true, text: 'Score', font: { size: 24 } }, ticks: { font: { size: 18 } } }, x: { ticks: { font: { size: 18 } } } }
+                        }
+                    });
+                    await new Promise(r => setTimeout(r, 300));
+                    chartImages.phytoTimeline = phytoCanvas.toDataURL('image/png');
+                }
+
+            } catch (e) {
+                console.warn('DOC Chart Gen Error:', e);
+            } finally {
+                if (tempDiv.parentNode) tempDiv.parentNode.removeChild(tempDiv);
+            }
+
+            return chartImages;
+        }
+
+        async function generateScientificHTML(trial, coverChartImg, phytoChartImg, options = {}) {
+            const efficacyData = safeJsonParse(trial.EfficacyDataJSON, []);
+            const allWeedSpecies = [...new Set(efficacyData.flatMap(obs => (obs.weedDetails || []).map(wc => wc.species.trim())))];
+            const trialDate = new Date(trial.Date).toLocaleDateString();
+            const aiSummary = safeJsonParse(trial.AISummariesJSON, {});
+
+            // Narrative
+            let narrativeHtml = "";
+            const narrativeText = aiSummary.scientificNarrative || "";
+            if (narrativeText) {
+                narrativeHtml = narrativeText
+                    .replace(/\*\*([^*]+)\*\*/g, '<h3>$1</h3>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br/>');
+                narrativeHtml = `<p>${narrativeHtml}</p>`;
+            } else {
+                narrativeHtml = "<p><i>Narrative not available. Please generate AI summary first.</i></p>";
+            }
+
+            // Photos - Prepare for Grid
+            const photos = safeJsonParse(trial.PhotoURLs, []);
+            const processedPhotos = [];
+
+            if (photos.length > 0) {
+                for (const p of photos) {
+                    if (p.url) {
+                        try {
+                            const base64 = await getImageAsResizedBase64(p.url, 600); // Higher resolution for export
+                            if (base64) {
+                                processedPhotos.push({
+                                    base64: base64,
+                                    label: p.label || 'Photo',
+                                    date: p.date ? new Date(p.date).toLocaleDateString() : '',
+                                    weather: p.weather ? `${p.weather.temp}°C` : ''
+                                });
+                            }
+                        } catch (e) { console.log('Photo skip', e); }
+                    }
+                }
+            }
+
+            const photosHtml = processedPhotos.length > 0
+                ? `<h2>Photo Log</h2>${renderPhotoGridHTML(processedPhotos)}`
+                : '';
+
+            return `
+                <h1>SCIENTIFIC TRIAL REPORT</h1>
+                <p class="center"><strong>Trial Protocol: ${trial.FormulationName}</strong></p>
+                
+                <table class="meta-table">
+                    <tr><td><strong>Investigator:</strong> ${trial.InvestigatorName || 'N/A'}</td><td><strong>Date:</strong> ${trialDate}</td></tr>
+                    <tr><td><strong>Location:</strong> ${trial.Location || 'N/A'}</td><td><strong>Dosage:</strong> ${trial.Dosage || 'N/A'}</td></tr>
+                    <tr><td><strong>Status:</strong> ${trial.IsCompleted ? 'Finalized' : 'Ongoing'}</td><td><strong>Manual Verdict:</strong> ${trial.Result || 'N/A'}</td></tr>
+                </table>
+
+                ${options.includeIngredients ? renderIngredientsTable(trial) : ''}
+
+                <hr/>
+
+                <h2>Executive Agronomist Narrative</h2>
+                ${narrativeHtml}
+
+                <h2>Trial Details</h2>
+                <p><strong>Target Species:</strong> ${allWeedSpecies.join(', ') || 'N/A'}</p>
+                
+                <h2>Efficacy Analysis</h2>
+                ${coverChartImg ? `<div class="img-container"><img src="${coverChartImg}" width="600" /></div>` : '<p>No efficacy chart available.</p>'}
+                <p>${aiSummary.cover || ''}</p>
+
+                <h2>Phytotoxicity Analysis</h2>
+                ${phytoChartImg ? `<div class="img-container"><img src="${phytoChartImg}" width="600" /></div>` : '<p>No phytotoxicity chart available.</p>'}
+                <p>${aiSummary.phyto || ''}</p>
+
+                ${photosHtml}
+            `;
+        }
+
+        async function exportRegulatoryReportAsDOC(projectId) {
+            const project = state.projects.find(p => p.ID === projectId);
+            if (!project) return;
+
+            showToast('Generating Regulatory Report DOC...', 'info');
+
+            try {
+                // 1. Capture Charts
+                // 1. Capture Charts (OFF-SCREEN REGENERATION)
+                const chartImages = await generateRegulatoryChartsForDOC(projectId);
+
+                const performanceChartImg = chartImages.finalPerformance || "";
+                const wceChartImg = chartImages.wceTimeline || "";
+                const phytoChartImg = chartImages.phytoTimeline || "";
+
+
+
+                // 2. Prepare Data
+                const projectTrials = state.trials.filter(t => t.ProjectID === projectId);
+                const treatments = [...new Set(projectTrials.map(t => t.FormulationName))];
+
+                // Analysis Data
+                const engine = new AnalysisEngine(projectId, state);
+                const anovaResults = engine.analyze('wce', null, null);
+
+                // 3. Prepare Photos (Grouped by Treatment)
+                const photosByTreatment = {};
+
+                // Initialize arrays for each treatment
+                treatments.forEach(t => photosByTreatment[t] = []);
+
+                // Collect photos from all trials
+                for (const t of projectTrials) {
+                    const tName = t.FormulationName;
+                    const photos = safeJsonParse(t.PhotoURLs, []);
+
+                    // We'll take up to 2 representative photos per trial to avoid huge DOCs
+                    let count = 0;
+                    for (const p of photos) {
+                        if (p.url && count < 2) {
+                            try {
+                                const base64 = await getImageAsResizedBase64(p.url, 600);
+                                if (base64) {
+                                    photosByTreatment[tName].push({
+                                        base64: base64,
+                                        label: `Rep ${state.blocks.find(b => b.ID === t.BlockID)?.ReplicationNum || '?'} - ${p.label || 'Photo'}`,
+                                        date: p.date ? new Date(p.date).toLocaleDateString() : '',
+                                        weather: p.weather ? `${p.weather.temp}°C` : ''
+                                    });
+                                    count++;
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
+
+                // 4. Build HTML Content
+                let html = `
+                    <div style="font-family: 'Times New Roman', serif; color: #000;">
+                        <h1 style="color: #0d9488; text-align: center; font-size: 24pt; margin-bottom: 10px;">REGULATORY TRIAL REPORT</h1>
+                        <h2 style="text-align: center; font-size: 18pt; color: #555; margin-bottom: 30px;">${project.Name}</h2>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <tr style="background-color: #f3f4f6;">
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Project ID</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${project.ID}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Date</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${new Date().toLocaleDateString()}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Metric</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${project.Metric || 'Weed Control Efficiency'}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Trials</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${projectTrials.length}</td>
+                            </tr>
+                            <tr style="background-color: #f3f4f6;">
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Status</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${project.Status}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Treatments</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${treatments.length}</td>
+                            </tr>
+                        </table>
+
+                        <h3 style="color: #0f766e; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px;">1. Treatments Evaluated</h3>
+                        <ul style="margin-bottom: 20px;">
+                            ${treatments.map(t => `<li>${t}</li>`).join('')}
+                        </ul>
+
+                        <h3 style="color: #0f766e; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px;">2. Efficacy Analysis</h3>
+                        <p>The following charts illustrate the performance of tested formulations across all trials.</p>
+                        
+                        ${performanceChartImg ? `<div style="text-align: center; margin: 20px 0;"><img src="${performanceChartImg}" width="600" /><br/><em>Figure 1: Mean Performance by Treatment</em></div>` : ''}
+                        
+                        ${wceChartImg ? `<div style="text-align: center; margin: 20px 0;"><img src="${wceChartImg}" width="600" /><br/><em>Figure 2: Efficacy Over Time (DAA)</em></div>` : ''}
+
+                        <h3 style="color: #0f766e; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px;">3. Statistical Summary (ANOVA)</h3>
+                        ${renderAnovaTableHTML(anovaResults.anova)}
+
+                        <h3 style="color: #0f766e; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px;">4. Treatment Means & Grouping</h3>
+                        ${renderMeansTableHTML(anovaResults.grouping)}
+
+                        <h3 style="color: #0f766e; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px;">5. Phytotoxicity</h3>
+                        ${phytoChartImg ? `<div style="text-align: center; margin: 20px 0;"><img src="${phytoChartImg}" width="600" /><br/><em>Figure 3: Crop Phytotoxicity Over Time</em></div>` : '<p>No phytotoxicity data available.</p>'}
+
+                        <h3 style="color: #0f766e; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px;">6. Photo Documentation</h3>
+                        ${treatments.map(t => {
+                    const tPhotos = photosByTreatment[t] || [];
+                    if (tPhotos.length === 0) return '';
+                    return `
+                                <h4 style="color: #333; margin-top: 15px;">Treatment: ${t}</h4>
+                                ${renderPhotoGridHTML(tPhotos)}
+                            `;
+                }).join('')}
+
+                        <h3 style="color: #0f766e; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px;">7. Conclusion</h3>
+                        <p>${project.Description || 'No description provided.'}</p>
+                        <p><em>Generated by Herbicide App Regulatory Module.</em></p>
+                    </div>
+                `;
+
+                // 4. Convert & Save
+                const fullDoc = `<!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: 'Times New Roman', serif; font-size: 11pt; }
+                    </style>
+                </head>
+                <body>
+                    ${html}
+                </body>
+                </html>`;
+
+                const converted = htmlDocx.asBlob(fullDoc, {
+                    orientation: 'portrait',
+                    margins: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+                });
+
+                showToast('DOC Downloaded!', 'success');
+                saveAs(converted, `Regulatory_Report_${project.Name.replace(/[^a-z0-9]/gi, '_')}.docx`);
+
+            } catch (err) {
+                console.error('Regulatory DOC Export Failed:', err);
+                showToast('Failed to export DOC: ' + err.message, 'error');
+            }
+        }
+
+        // Helper: Render ANOVA Table
+        function renderAnovaTableHTML(anova) {
+            if (!anova) return '<p>Insufficient data for ANOVA.</p>';
+            return `
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10pt;">
+                    <thead style="background-color: #f3f4f6;">
+                        <tr>
+                            <th style="border: 1px solid #999; padding: 6px;">Source</th>
+                            <th style="border: 1px solid #999; padding: 6px;">DF</th>
+                            <th style="border: 1px solid #999; padding: 6px;">SS</th>
+                            <th style="border: 1px solid #999; padding: 6px;">MS</th>
+                            <th style="border: 1px solid #999; padding: 6px;">F</th>
+                            <th style="border: 1px solid #999; padding: 6px;">P-value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #999; padding: 6px;">Treatments</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.dfTreat}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.ssTreat.toFixed(2)}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.msTreat.toFixed(2)}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.fVal.toFixed(2)}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.pVal.toFixed(4)} ${anova.pVal < 0.05 ? '*' : 'ns'}</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #999; padding: 6px;">Error</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.dfError}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.ssError.toFixed(2)}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.msError.toFixed(2)}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">-</td>
+                            <td style="border: 1px solid #999; padding: 6px;">-</td>
+                        </tr>
+                        <tr style="font-weight: bold; background-color: #f9fafb;">
+                            <td style="border: 1px solid #999; padding: 6px;">Total</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.dfTotal}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">${anova.ssTotal.toFixed(2)}</td>
+                            <td style="border: 1px solid #999; padding: 6px;">-</td>
+                            <td style="border: 1px solid #999; padding: 6px;">-</td>
+                            <td style="border: 1px solid #999; padding: 6px;">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Helper: Render Means Table
+        function renderMeansTableHTML(grouping) {
+            if (!grouping || grouping.length === 0) return '<p>No means data.</p>';
+            return `
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10pt;">
+                    <thead style="background-color: #f3f4f6;">
+                        <tr>
+                            <th style="border: 1px solid #999; padding: 6px; text-align: left;">Treatment</th>
+                            <th style="border: 1px solid #999; padding: 6px;">Mean Efficiency (%)</th>
+                            <th style="border: 1px solid #999; padding: 6px;">LSD Group</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${grouping.map(g => `
+                            <tr>
+                                <td style="border: 1px solid #999; padding: 6px;">${g.name}</td>
+                                <td style="border: 1px solid #999; padding: 6px; text-align: center;">${g.mean.toFixed(2)}</td>
+                                <td style="border: 1px solid #999; padding: 6px; text-align: center;">${g.grouping}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // --- BUTTON INJECTION FOR REGULATORY DOC ---
+        function injectRegulatoryReportDOCButton() {
+            // Only inject if on project dashboard and has active project
+            const actionsCard = document.getElementById('project-actions-card');
+            if (!actionsCard || !state.activeProjectId) return;
+
+            // Check if already injected
+            if (document.getElementById('btn-regulatory-doc-export')) return;
+
+            const btn = document.createElement('button');
+            btn.id = 'btn-regulatory-doc-export';
+            btn.className = 'w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 transition';
+            btn.innerHTML = '<i data-lucide="file-text" class="h-4 w-4 text-blue-600"></i> Export Regulatory DOC';
+            btn.onclick = () => exportRegulatoryReportAsDOC(state.activeProjectId);
+
+            // Find where to insert (e.g., in the actions list)
+            // If the actions card has a specific structure, we append or insert
+            // Assuming it might be a list or we append to the bottom
+
+            // Try to find the "Export Regulatory Report (PDF)" button and insert after it
+            // Or just append to the container
+            actionsCard.appendChild(btn);
+
+            // Re-initialize icons
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        // Run injection periodically
+        setInterval(injectRegulatoryReportDOCButton, 2000);
+
+        // Also run on page load
+        setTimeout(injectRegulatoryReportDOCButton, 1500);
     </script>
 
     <!-- DATA QUALITY REVIEW MODAL -->
