@@ -2527,9 +2527,26 @@ IMPORTANT:
                             <div class="lg:col-span-3 dashboard-card bg-white p-6 rounded-xl shadow-lg" style="animation-delay: 0.3s;"><h3 class="font-semibold text-slate-800 mb-4">Trials Over Time</h3><div class="h-80"><canvas id="trials-over-time-chart"></canvas></div></div>
                             <div class="lg:col-span-2 dashboard-card bg-white p-6 rounded-xl shadow-lg flex flex-col" style="animation-delay: 0.4s;"><h3 class="font-semibold text-slate-800 mb-4">Results Breakdown</h3><div class="h-80 flex items-center justify-center"><canvas id="results-breakdown-chart"></canvas></div></div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                            <div class="dashboard-card bg-white p-6 rounded-xl shadow-lg" style="animation-delay: 0.5s;"><h3 class="font-semibold text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="award" class="text-teal-600"></i> Top 10 Highest Control Days</h3><ul id="top-control-days-list" class="space-y-3 text-sm"></ul></div>
-                            <div class="dashboard-card bg-white p-6 rounded-xl shadow-lg" style="animation-delay: 0.6s;"><h3 class="font-semibold text-slate-800 mb-4">Average Weather Conditions</h3><div id="avg-weather-conditions" class="grid grid-cols-2 gap-y-4 gap-x-2 text-left mt-4"></div></div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                            <div class="dashboard-card bg-white p-6 rounded-xl shadow-lg md:col-span-2" style="animation-delay: 0.5s;">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-slate-800 flex items-center gap-2"><i data-lucide="bar-chart-3" class="text-teal-600"></i> Top Formulations This Season</h3>
+                                    <div class="flex flex-wrap gap-2 text-xs">
+                                        <select id="top-formulations-year" class="form-input px-2 py-1 border rounded">
+                                            <option value="">All Years</option>
+                                        </select>
+                                        <input id="top-formulations-weed" type="text" class="form-input px-2 py-1 border rounded" placeholder="Filter by Weed Species">
+                                        <input id="top-formulations-location" type="text" class="form-input px-2 py-1 border rounded" placeholder="Filter by Location">
+                                    </div>
+                                </div>
+                                <div class="h-72">
+                                    <canvas id="top-formulations-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="dashboard-card bg-white p-6 rounded-xl shadow-lg" style="animation-delay: 0.6s;">
+                                <h3 class="font-semibold text-slate-800 mb-4">Average Weather Conditions</h3>
+                                <div id="avg-weather-conditions" class="grid grid-cols-2 gap-y-4 gap-x-2 text-left mt-4"></div>
+                            </div>
                         </div>
                     `,
                     formulations: `<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"><div class="flex-grow"><input type="search" data-action="filter" data-type="formulation" placeholder="Search formulations by name..." class="w-full form-input px-4 py-2 border rounded-lg"></div><div><button data-action="openModal" data-type="formulation" class="btn-primary text-white px-4 py-2 rounded-lg shadow w-full md:w-auto flex items-center gap-2"><i data-lucide="plus"></i> New Formulation</button></div></div><div id="formulations-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>`,
@@ -2774,6 +2791,32 @@ IMPORTANT:
                                         <div class="md:col-span-2">
                                             <label class="block text-sm font-medium text-gray-700">Drive Photo Folder URL</label>
                                             <input type="url" id="folder-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 form-input" placeholder="https://drive.google.com/drive/folders/...">
+                                            
+                                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div class="p-4 bg-teal-50 border border-teal-200 rounded-lg">
+                                                    <div class="flex items-center justify-between gap-4">
+                                                        <div>
+                                                            <h4 class="text-sm font-semibold text-teal-800">Drive Cleanup Utility</h4>
+                                                            <p class="text-xs text-teal-700 mt-1">Automatically organize all existing trial photos into "Project &gt; Trial" subfolders.</p>
+                                                        </div>
+                                                        <button type="button" data-action="organize-drive-photos" class="whitespace-nowrap bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 font-medium text-sm flex items-center gap-2">
+                                                            <i data-lucide="layout-grid" class="h-4 w-4"></i> Organize Drive Photos
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                                                    <div class="flex items-center justify-between gap-4">
+                                                        <div>
+                                                            <h4 class="text-sm font-semibold text-slate-800">Photo Consistency Check</h4>
+                                                            <p class="text-xs text-slate-700 mt-1">Scan Drive and trials to find photos not linked to any Trial record.</p>
+                                                        </div>
+                                                        <button type="button" data-action="scan-photo-consistency" class="whitespace-nowrap bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800 font-medium text-sm flex items-center gap-2">
+                                                            <i data-lucide="search" class="h-4 w-4"></i> Scan Photos
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3159,6 +3202,109 @@ IMPORTANT:
                                 plugins: { ...chartDefaults.plugins, legend: { ...chartDefaults.plugins.legend, position: 'bottom' } }
                             }
                         });
+                    }
+
+                    // Top formulations this season chart (multi-project comparison)
+                    const yearSelect = document.getElementById('top-formulations-year');
+                    const weedInput = document.getElementById('top-formulations-weed');
+                    const locationInput = document.getElementById('top-formulations-location');
+
+                    if (yearSelect && trials.length > 0) {
+                        const years = Array.from(new Set(trials
+                            .filter(t => t.Date)
+                            .map(t => new Date(t.Date).getFullYear())
+                        )).sort((a, b) => b - a);
+                        yearSelect.innerHTML = '<option value=\"\">All Years</option>' + years.map(y => `<option value=\"${y}\">${y}</option>`).join('');
+                    }
+
+                    function getTopFormulationsData() {
+                        const selectedYear = yearSelect?.value || '';
+                        const weedFilter = (weedInput?.value || '').toLowerCase();
+                        const locationFilter = (locationInput?.value || '').toLowerCase();
+
+                        const scoreMap = {};
+                        const resultScores = { 'Excellent': 4, 'Good': 3, 'Fair': 2, 'Poor': 1 };
+
+                        (trials || []).forEach(t => {
+                            if (!t.FormulationName) return;
+                            if (t.IsControl) return;
+
+                            const d = t.Date ? new Date(t.Date) : null;
+                            if (selectedYear && d && d.getFullYear().toString() !== selectedYear) return;
+
+                            if (weedFilter && !(t.WeedSpecies || '').toLowerCase().includes(weedFilter)) return;
+                            if (locationFilter && !(t.Location || '').toLowerCase().includes(locationFilter)) return;
+
+                            const score = resultScores[t.Result] ?? 0;
+                            const key = t.FormulationName;
+                            if (!scoreMap[key]) {
+                                scoreMap[key] = { totalScore: 0, count: 0 };
+                            }
+                            scoreMap[key].totalScore += score;
+                            scoreMap[key].count += 1;
+                        });
+
+                        const aggregated = Object.keys(scoreMap).map(name => ({
+                            name,
+                            avgScore: scoreMap[name].count > 0 ? scoreMap[name].totalScore / scoreMap[name].count : 0,
+                            n: scoreMap[name].count
+                        }));
+
+                        aggregated.sort((a, b) => b.avgScore - a.avgScore || b.n - a.n);
+                        const top = aggregated.slice(0, 10);
+
+                        return {
+                            labels: top.map(x => x.name),
+                            data: top.map(x => Number(x.avgScore.toFixed(2))),
+                            counts: top.map(x => x.n)
+                        };
+                    }
+
+                    const topFormCtx = document.getElementById('top-formulations-chart')?.getContext('2d');
+                    if (topFormCtx) {
+                        const chartDefaults = getChartDefaults();
+                        const buildChart = () => {
+                            const { labels, data, counts } = getTopFormulationsData();
+                            if (state.charts.topFormulations) {
+                                state.charts.topFormulations.destroy();
+                            }
+                            state.charts.topFormulations = new Chart(topFormCtx, {
+                                type: 'bar',
+                                data: {
+                                    labels,
+                                    datasets: [{
+                                        label: 'Avg Result Score (4=Excellent..1=Poor)',
+                                        data,
+                                        backgroundColor: '#0f766e'
+                                    }]
+                                },
+                                options: {
+                                    ...chartDefaults,
+                                    plugins: {
+                                        ...chartDefaults.plugins,
+                                        tooltip: {
+                                            callbacks: {
+                                                label: ctx => {
+                                                    const value = ctx.parsed.y;
+                                                    const n = counts[ctx.dataIndex] || 0;
+                                                    return `Score: ${value} (n=${n} trials)`;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 } },
+                                        y: { beginAtZero: true, max: 4 }
+                                    }
+                                }
+                            });
+                        };
+
+                        buildChart();
+
+                        if (yearSelect) yearSelect.onchange = buildChart;
+                        if (weedInput) weedInput.oninput = () => buildChart();
+                        if (locationInput) locationInput.oninput = () => buildChart();
                     }
                 },
                 trialCard: (trial, showCheckbox = true) => {
@@ -4367,6 +4513,11 @@ Write a 3-paragraph Narrative covering Methodology, Results and Conclusions. Foc
             }
             window.showToast = showToast; // Make globally accessible
 
+            function hideToast() {
+                if (toast) toast.className = toast.className.replace('show', '');
+            }
+            window.hideToast = hideToast;
+
 
             function openProjectDashboard(id) {
                 state.activeProjectId = id; // IMPORTANT: Set activeProjectId instead of currentProjectId for Dashboard logic
@@ -5012,8 +5163,11 @@ Write a 3-paragraph Narrative covering Methodology, Results and Conclusions. Foc
                         if (ingredients.length === 0) throw new Error('A formulation must have at least one ingredient.');
                         recordForApi = { ID: id, Name: formData.name, Notes: formData.notes, IngredientsJSON: JSON.stringify(ingredients), EstimatedCost: calculateFormulationCost(ingredients) };
                     } else if (type === 'trial') {
-                        const formulation = state.formulations.find(f => f.ID === formData.formulationId);
-                        if (!formulation) throw new Error('Please select a valid formulation.');
+                        const formulation = state.formulations.find(f => f.ID == formData.formulationId);
+                        if (!formulation) {
+                            console.warn('Formulation not found in state for ID:', formData.formulationId);
+                            // Fallback check if needed
+                        }
 
                         const isControl = form.querySelector('[name="isControl"]')?.checked;
                         if (isControl && formData.blockId) {
@@ -5027,8 +5181,25 @@ Write a 3-paragraph Narrative covering Methodology, Results and Conclusions. Foc
                         showToast('Uploading photos...', 'success');
                         const photosToUpload = isUpdate ? state.croppedPhotosData.filter(p => !p.isExisting) : state.croppedPhotosData;
                         const existingPhotos = isUpdate ? state.croppedPhotosData.filter(p => p.isExisting) : [];
-                        const uploadedNewPhotos = await uploadPhotos(photosToUpload);
-                        const photoURLsForPayload = [...existingPhotos, ...uploadedNewPhotos];
+                        const projectId = formData.projectId || formData.projectID || formData.ProjectID;
+                        const project = state.projects.find(p => p.ID == projectId);
+                        const projectName = project ? project.Name : 'Ungrouped Projects';
+                        const trialNameWithDate = `${formulation ? formulation.Name : 'Unknown Formulation'} (${formData.date || new Date().toISOString().split('T')[0]})`.trim();
+                        const folderPath = [projectName, trialNameWithDate];
+
+                        console.log('Uploading photos with path:', folderPath);
+                        const uploadedNewPhotos = await uploadPhotos(photosToUpload, folderPath);
+                        let photoURLsForPayload = [...existingPhotos, ...uploadedNewPhotos];
+
+                        // SAFETY: Never wipe existing PhotoURLs on update just because
+                        // no new photos were uploaded or an upload failed.
+                        if (isUpdate && (!photoURLsForPayload || photoURLsForPayload.length === 0)) {
+                            const originalTrial = state.trials.find(t => t.ID === id);
+                            if (originalTrial && originalTrial.PhotoURLs) {
+                                photoURLsForPayload = safeJsonParse(originalTrial.PhotoURLs, [])
+                                    .map(p => ({ ...p })); // preserve existing URLs as-is
+                            }
+                        }
                         const controlFinalized = form.querySelector('#control-finalized').checked;
                         const isCompleted = form.querySelector('#is-completed').checked;
                         let finalizationDate = formData.finalizationDate || null;
@@ -5062,7 +5233,7 @@ Write a 3-paragraph Narrative covering Methodology, Results and Conclusions. Foc
                             WeedSpecies: formData.weedSpecies || '', Date: formData.date, Result: formData.result, Conclusion: formData.conclusion, Notes: formData.notes,
                             Yield: formData.yield || null,
                             Temperature: formData.temperature, Humidity: formData.humidity, Windspeed: formData.windspeed, Rain: formData.rain,
-                            PhotoURLs: JSON.stringify(photoURLsForPayload.map(({ fileData, ...rest }) => rest)),
+                            PhotoURLs: JSON.stringify((photoURLsForPayload || []).map(({ fileData, ...rest }) => rest)),
                             ControlFinalized: controlFinalized,
                             FinalControlDuration: controlFinalized ? finalControlDuration : null,
                             FinalizationDate: controlFinalized ? finalizationDate : null,
@@ -5286,8 +5457,25 @@ Write a 3-paragraph Narrative covering Methodology, Results and Conclusions. Foc
                     form.querySelector('[name="yield"]').value = data.Yield || '';
                     form.querySelector('[name="replication"]').value = data.Replication || '';
                     form.querySelector('[name="weedSpecies"]').value = data.WeedSpecies || '';
-                    const trialDate = new Date(data.Date).toISOString().split('T')[0];
-                    form.querySelector('[name="date"]').value = trialDate;
+
+                    // Preserve original trial date when editing, avoid auto-changing,
+                    // and always format using local timezone to prevent +/-1 day shifts.
+                    let trialDateValue = '';
+                    if (data.Date) {
+                        // If already in YYYY-MM-DD, keep as-is
+                        if (typeof data.Date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data.Date.trim())) {
+                            trialDateValue = data.Date.trim();
+                        } else {
+                            const d = new Date(data.Date);
+                            if (!isNaN(d.getTime())) {
+                                const year = d.getFullYear();
+                                const month = String(d.getMonth() + 1).padStart(2, '0');
+                                const day = String(d.getDate()).padStart(2, '0');
+                                trialDateValue = `${year}-${month}-${day}`;
+                            }
+                        }
+                    }
+                    form.querySelector('[name="date"]').value = trialDateValue;
                     form.querySelector('#photo-date').value = trialDate;
                     form.querySelector('[name="result"]').value = data.Result || '';
                     form.querySelector('[name="conclusion"]').value = data.Conclusion || '';
@@ -6594,17 +6782,19 @@ Respond ONLY with a single minified JSON object in this format: {"identification
                 }
             }
 
-            async function uploadPhotos(photosData) {
+            async function uploadPhotos(photosData, folderPath = null) {
 
                 if (!photosData || photosData.length === 0) return [];
                 const results = [];
                 for (const photoData of photosData) {
                     try {
                         if (!state.settings.folderId) throw new Error("Folder ID missing. Check Settings.");
+                        console.log(`[Upload] Sending photo to path: ${JSON.stringify(folderPath)}`);
                         const result = await apiCall('uploadPhoto', {
                             fileData: photoData.fileData,
                             fileName: photoData.fileName,
-                            mimeType: photoData.mimeType
+                            mimeType: photoData.mimeType,
+                            folderPath: folderPath // Pass it as folderPath
                         }, false);
                         results.push(result);
                     } catch (error) {
@@ -6733,8 +6923,14 @@ Respond ONLY with a single minified JSON object in this format: {"identification
                 const trialIndex = state.trials.findIndex(t => t.ID === trialId);
                 if (trialIndex === -1) return showToast('Error: Could not find the trial.', 'error');
 
+                const trial = state.trials.find(t => t.ID == trialId);
+                const project = state.projects.find(p => p.ID == trial.ProjectID);
+                const projectName = project ? project.Name : 'Ungrouped Projects';
+                const trialNameWithDate = `${trial.FormulationName || 'Unknown Formulation'} (${trial.Date ? new Date(trial.Date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]})`.trim();
+                const folderPath = [projectName, trialNameWithDate];
+
                 showToast(`Uploading ${photosData.length} photo(s)...`, 'info');
-                const successfulUploads = await uploadPhotos(photosData);
+                const successfulUploads = await uploadPhotos(photosData, folderPath);
                 console.log('Successful uploads:', successfulUploads.length);
 
                 if (successfulUploads.length > 0) {
@@ -6975,17 +7171,20 @@ Respond ONLY with a single minified JSON object in this format: {"identification
                     });
 
                     state.blocks = normalizeIDs(allData.blocks).map(b => ({ ...b, ReplicationNum: parseInt(b.ReplicationNum) || 0 }));
-                    state.trials = (allData.trials || []).map(t => ({
-                        ...normalizeIDs([t])[0],
-                        WeedPhotosJSON: t.WeedPhotosJSON || '[]',
-                        EfficacyDataJSON: t.EfficacyDataJSON || '[]',
-                        IsCompleted: t.IsCompleted || false,
-                        AISummariesJSON: t.AISummariesJSON || '{}',
-                        ProjectID: String(t.ProjectID || ''),
-                        BlockID: String(t.BlockID || ''),
-                        IsControl: String(t.IsControl).toLowerCase() === 'true',
-                        IsStandardCheck: String(t.IsStandardCheck).toLowerCase() === 'true'
-                    }));
+                    state.trials = (allData.trials || [])
+                        // Hide soft-deleted trials
+                        .filter(t => !t.DeletedAt)
+                        .map(t => ({
+                            ...normalizeIDs([t])[0],
+                            WeedPhotosJSON: t.WeedPhotosJSON || '[]',
+                            EfficacyDataJSON: t.EfficacyDataJSON || '[]',
+                            IsCompleted: t.IsCompleted || false,
+                            AISummariesJSON: t.AISummariesJSON || '{}',
+                            ProjectID: String(t.ProjectID || ''),
+                            BlockID: String(t.BlockID || ''),
+                            IsControl: String(t.IsControl).toLowerCase() === 'true',
+                            IsStandardCheck: String(t.IsStandardCheck).toLowerCase() === 'true'
+                        }));
                     state.organisations = normalizeIDs(allData.organisations);
                     injectSyncPlaceholders();
                     switchPage(state.currentPage || 'dashboard');
@@ -7689,6 +7888,67 @@ Respond ONLY with a single minified JSON object in this format: {"identification
                         'remove-ingredient-row': () => { target.closest('.formulation-ingredient-row').remove(); updateFormulationCost(); },
                         'remove-photo': () => { state.croppedPhotosData.splice(parseInt(index, 10), 1); updatePhotoPreview(); },
                         'reset-data-sources': () => { localStorage.removeItem('appSettings'); loadSettings(); showToast('Data sources reset.', 'success'); initializeApp(); },
+                        'organize-drive-photos': () => {
+                            showConfirmation(
+                                'Organize Drive Photos?',
+                                'This will analyze your Trial records and move all existing Trial photos into "Project > Trial" subfolders. This will be done in batches to prevent timeouts.',
+                                async () => {
+                                    let movedTotal = 0;
+                                    let errorsTotal = 0;
+                                    let startIndex = 0;
+                                    let isComplete = false;
+
+                                    try {
+                                        showToast('Starting organization...', 'info', 0);
+
+                                        while (!isComplete) {
+                                            const result = await apiCall('organizeExistingPhotos', { startIndex }, false);
+
+                                            // Handle potential API error nested in success result
+                                            if (result._errType) throw new Error(result.message);
+
+                                            if (result.success) {
+                                                movedTotal += result.moved;
+                                                errorsTotal += result.errors;
+                                                startIndex = result.nextIndex;
+                                                isComplete = result.isComplete;
+
+                                                const percent = result.total > 0 ? Math.round((startIndex / result.total) * 100) : 100;
+                                                showToast(`Organizing: ${Math.min(100, percent)}% complete... (${movedTotal} moved)`, 'info', 0);
+                                            } else {
+                                                throw new Error(result.message || 'Batch failed');
+                                            }
+                                        }
+
+                                        hideToast();
+                                        showToast(`Successfully moved ${movedTotal} photos. (${errorsTotal} errors)`, 'success');
+                                    } catch (err) {
+                                        hideToast();
+                                        showToast('Error organizing photos: ' + err.message, 'error');
+                                    }
+                                }
+                            );
+                        },
+                        'scan-photo-consistency': async () => {
+                            try {
+                                showToast('Scanning Drive photos vs trial records...', 'info');
+                                const result = await apiCall('scanPhotoConsistency', {}, false);
+
+                                if (result._errType) throw new Error(result.message);
+
+                                const { totalFiles, referencedFiles, unreferencedFiles, sampleOrphans = [] } = result;
+                                if (Array.isArray(sampleOrphans) && sampleOrphans.length) {
+                                    console.table(sampleOrphans);
+                                }
+
+                                const msg = `Photos in Drive: ${totalFiles}\nLinked to Trials: ${referencedFiles}\nUnlinked / Orphaned: ${unreferencedFiles}\n\nUp to 50 sample orphan files (id, name, path) have been logged to the browser console for review.`;
+                                alert(msg);
+                                showToast('Photo consistency scan complete. See console for details.', 'success');
+                            } catch (error) {
+                                console.error('Photo consistency scan failed:', error);
+                                showToast(`Photo scan failed: ${error.message}`, 'error');
+                            }
+                        },
                         'open-photo-edit-modal': () => handleOpenPhotoEditModal(trialId, photoIndex),
                         'attach-ai-image': () => document.getElementById('ai-image-input').click(),
                         'remove-ai-image': () => { state.aiAttachedImage = { fileData: null, mimeType: null }; document.getElementById('ai-image-preview-container').style.display = 'none'; document.getElementById('ai-image-input').value = ''; },
@@ -12617,7 +12877,15 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                     return matchesSearch && matchesFormText && matchesForm && matchesDate;
                 });
 
-                if (sortBy === 'date') filtered.sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
+                if (sortBy === 'date') {
+                    filtered.sort((a, b) => {
+                        const ad = a.Date ? new Date(a.Date).getTime() : 0;
+                        const bd = b.Date ? new Date(b.Date).getTime() : 0;
+                        if (bd !== ad) return bd - ad; // Newer dates first
+                        // Tie‑breaker: keep newer IDs (recently created) first
+                        return String(b.ID).localeCompare(String(a.ID), undefined, { numeric: true });
+                    });
+                }
                 if (sortBy === 'result') {
                     const scores = { 'Excellent': 4, 'Good': 3, 'Fair': 2, 'Poor': 1, '': 0 };
                     filtered.sort((a, b) => scores[b.Result || ''] - scores[a.Result || '']);
@@ -13285,6 +13553,15 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                         const uploadStart = Date.now();
                         console.log(`[Step 1/3] Uploading to Google Drive...`);
 
+                        // Determine hierarchical folder path
+                        let folderPath = null;
+                        if (trial) {
+                            const project = state.projects.find(p => p.ID === trial.ProjectID);
+                            const projectName = project ? project.Name : 'Ungrouped Projects';
+                            const trialNameWithDate = `${trial.FormulationName || 'Unknown Formulation'} (${trial.Date ? new Date(trial.Date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]})`.trim();
+                            folderPath = [projectName, trialNameWithDate];
+                        }
+
                         const result = await apiCall('uploadPhoto', {
                             trialId: item.trialId,
                             fileData: item.photo.fileData,
@@ -13292,7 +13569,8 @@ Use a formal, objective, and interpretive senior agronomist tone. Avoid conversa
                             fileName: item.photo.fileName,
                             isWeed: isWeed,
                             label: item.photo.label,
-                            date: item.photo.date
+                            date: item.photo.date,
+                            folderPath: folderPath
                         }, false);
 
                         const uploadTime = ((Date.now() - uploadStart) / 1000).toFixed(2);
